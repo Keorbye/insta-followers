@@ -3,838 +3,480 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Follow Check — Instagram Unfollower Checker</title>
-<script>
-  // Apply saved theme (or system preference) before first paint to avoid flashing
-  (function () {
-    try {
-      var saved = localStorage.getItem("fc-theme");
-      var dark = saved ? saved === "dark"
-        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (dark) document.documentElement.setAttribute("data-theme", "dark");
-    } catch (e) { /* localStorage unavailable — default to light */ }
-  })();
-</script>
+<meta name="theme-color" content="#fff4ec" id="metaTheme">
+<title>Follow Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #ffffff;
-    --surface: #f5f5f7;
-    --surface-hover: #ececef;
-    --text: #1a1a1a;
-    --text-muted: #6e6e73;
-    --accent: #d62976;
-    --border: #e2e2e7;
-    --green: #1d9a4e;
-    --red: #d63a2f;
-    --red-bg: #fdecea;
-    --blue: #2f6fd0;
-    color-scheme: light;
-  }
-  :root[data-theme="dark"] {
-    --bg: #101014;
-    --surface: #1c1c22;
-    --surface-hover: #26262e;
-    --text: #f2f2f5;
-    --text-muted: #9a9aa5;
-    --accent: #ff5c9d;
-    --border: #2c2c35;
-    --green: #4cd482;
-    --red: #ff6b61;
-    --red-bg: #351715;
-    --blue: #6ea8ff;
-    color-scheme: dark;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    padding: 16px;
-    max-width: 860px;
-    margin: 0 auto;
-  }
-  header { text-align: center; margin: 24px 0 8px; position: relative; }
-  header h1 { font-size: 1.8rem; letter-spacing: -0.02em; }
-  header h1 span { color: var(--accent); }
-  header p { color: var(--text-muted); margin-top: 4px; font-size: 0.95rem; }
-  #theme-toggle {
-    position: absolute;
-    top: -6px;
-    right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    width: 42px;
-    height: 42px;
-    font-size: 1.15rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform .15s, border-color .15s;
-    line-height: 1;
-  }
-  #theme-toggle:hover { border-color: var(--accent); transform: rotate(15deg) scale(1.08); }
-  @media (max-width: 480px) {
-    #theme-toggle { position: static; margin: 0 auto 10px; display: flex; }
-    header { display: flex; flex-direction: column; align-items: center; }
-  }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    margin-top: 16px;
-  }
-  .card h2 { font-size: 1.1rem; margin-bottom: 10px; }
-  ol.steps { padding-left: 22px; }
-  ol.steps li { margin: 6px 0; }
-  code { background: var(--surface-hover); border-radius: 5px; padding: 1px 6px; font-size: 0.88em; }
-  .dropzones { display: flex; gap: 12px; flex-wrap: wrap; }
-  .dropzone {
-    flex: 1 1 260px;
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 24px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .15s, background .15s;
-    background: var(--bg);
-    position: relative;
-  }
-  .dropzone:hover, .dropzone.dragover { border-color: var(--accent); background: var(--surface); }
-  .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .dropzone .file-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
-  .dropzone .dz-title { font-weight: 600; word-break: break-all; }
-  .dropzone .dz-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
-  .dropzone.loaded { border-style: solid; border-color: var(--green); }
-  .dropzone.loaded .dz-title { color: var(--green); }
-  .dropzone.error { border-color: var(--red); }
-  .btn {
-    display: inline-block;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 9px;
-    padding: 10px 18px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-  .btn:hover { opacity: 0.88; }
-  .btn.secondary { background: var(--surface-hover); color: var(--text); border: 1px solid var(--border); }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn.small { padding: 8px 13px; font-size: 0.85rem; }
-  #error-msg {
-    display: none;
-    background: var(--red-bg);
-    color: var(--red);
-    border-radius: 9px;
-    padding: 10px 14px;
-    margin-top: 12px;
-    font-size: 0.9rem;
-  }
-  #results { display: none; }
-  .summary { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
-  .stat {
-    flex: 1 1 150px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-  }
-  .stat .num { font-size: 1.6rem; font-weight: 700; }
-  .stat .label { font-size: 0.82rem; color: var(--text-muted); }
-  .stat.nofollow .num { color: var(--red); }
-  .stat.fans .num { color: var(--blue); }
-  .stat.mutuals .num { color: var(--green); }
-  .tabs { display: flex; gap: 6px; margin-top: 20px; border-bottom: 1px solid var(--border); overflow-x: auto; }
-  .tab {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    font-weight: 600;
-    padding: 10px 14px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
-  .tab:hover { color: var(--text); }
-  .panel {
-    display: none;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    margin-top: 14px;
-  }
-  .panel.active { display: block; }
-  .panel-head { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-  .panel-head input[type="search"] {
-    flex: 1 1 180px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 9px 12px;
-    color: var(--text);
-    font-size: 0.92rem;
-  }
-  .panel-head input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
-  .letterbar { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
-  .letterbar button {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    border-radius: 7px;
-    min-width: 30px;
-    padding: 5px 7px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .12s;
-  }
-  .letterbar button:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
-  .letterbar button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .letterbar button:disabled { opacity: 0.3; cursor: default; }
-  ul.userlist { list-style: none; max-height: 480px; overflow-y: auto; }
-  ul.userlist li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
-    border-radius: 8px;
-  }
-  ul.userlist li:nth-child(odd) { background: var(--bg); }
-  ul.userlist a { color: var(--accent); text-decoration: none; font-weight: 500; word-break: break-all; }
-  ul.userlist a:hover { text-decoration: underline; }
-  ul.userlist .date { color: var(--text-muted); font-size: 0.78rem; white-space: nowrap; flex-shrink: 0; }
-  .empty { color: var(--text-muted); text-align: center; padding: 24px 0; justify-content: center; }
-  .privacy {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    margin-top: 24px;
-    color: var(--text-muted);
-    font-size: 0.88rem;
-  }
-  footer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin: 24px 0; }
-</style>
+:root{
+  --bg:#fff4ec; --card:#ffffff; --ink:#3d2c29; --ink-soft:#7a6a66;
+  --accent:#e8608a; --accent-ink:#ffffff; --accent-soft:#ffe1ea;
+  --good:#2f9e6e; --good-soft:#dff5ea; --warn:#c47f17; --warn-soft:#fdf0d5;
+  --line:#f3e2d8; --chip:#fff8f3; --input:#fffaf6;
+  --shadow:0 6px 20px rgba(232,96,138,.12);
+  --shadow-lift:0 10px 26px rgba(232,96,138,.20);
+  --r-lg:26px; --r-md:18px; --r-pill:999px;
+}
+html[data-theme="dark"]{
+  --bg:#241d24; --card:#322a33; --ink:#f7eef2; --ink-soft:#c0aec0;
+  --accent:#ff7fa8; --accent-ink:#2b1220; --accent-soft:#4a2c3a;
+  --good:#5fd6a0; --good-soft:#254436; --warn:#f5c15c; --warn-soft:#453a24;
+  --line:#453a45; --chip:#3c3240; --input:#2d2530;
+  --shadow:0 6px 20px rgba(0,0,0,.35);
+  --shadow-lift:0 10px 26px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:'Nunito',sans-serif; font-size:16px; line-height:1.55; transition:background .2s}
+h1,h2,h3{font-family:'Baloo 2',cursive; line-height:1.2; margin:0}
+.wrap{max-width:760px; margin:0 auto; padding:24px 20px 60px}
+header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px}
+header h1{font-size:1.9rem; color:var(--accent)}
+.tagline{margin:4px 0 0; color:var(--ink-soft); font-weight:600; font-size:.95rem}
+.icon-btn{border:2px solid var(--line); background:var(--card); color:var(--ink); width:46px; height:46px; border-radius:var(--r-pill); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s}
+.icon-btn:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift)}
+.icon-btn svg{width:22px; height:22px}
+.card{background:var(--card); border-radius:var(--r-lg); padding:24px; box-shadow:var(--shadow); margin-bottom:24px}
+.card h2{font-size:1.3rem; margin-bottom:12px}
+.steps{margin:12px 0 0; padding-left:0; list-style:none; counter-reset:step}
+.steps li{counter-increment:step; position:relative; padding:10px 14px 10px 52px; margin-bottom:8px; background:var(--chip); border-radius:var(--r-md); font-weight:600}
+.steps li::before{content:counter(step); position:absolute; left:12px; top:50%; transform:translateY(-50%); width:28px; height:28px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:'Baloo 2',cursive; font-weight:700; display:flex; align-items:center; justify-content:center}
+code{background:var(--accent-soft); color:var(--accent); padding:2px 8px; border-radius:8px; font-size:.85em; font-weight:700}
+.dropzone{border:2.5px dashed var(--line); border-radius:var(--r-md); padding:20px; text-align:center; cursor:pointer; background:var(--chip); margin-bottom:12px; transition:border-color .15s, background .15s}
+.dropzone:hover{border-color:var(--accent)}
+.dropzone.drag{border-color:var(--accent); background:var(--accent-soft)}
+.dropzone.loaded{border-style:solid; border-color:var(--good); background:var(--good-soft)}
+.dropzone.error{border-style:solid; border-color:#d64545}
+.dropzone strong{font-family:'Baloo 2',cursive; font-size:1.05rem}
+.dz-hint{color:var(--ink-soft); font-size:.85rem; margin:6px 0 0; word-break:break-word}
+.dz-count{color:var(--good); font-weight:700; margin:6px 0 0}
+.btn{font-family:'Baloo 2',cursive; font-size:1.05rem; font-weight:600; border:none; border-radius:var(--r-pill); padding:14px 32px; cursor:pointer; background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s}
+.btn:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift)}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+.btn-row{text-align:center; margin:8px 0 0}
+.btn-sm{font-family:'Nunito',sans-serif; font-weight:700; font-size:.85rem; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:var(--r-pill); padding:8px 16px; cursor:pointer; transition:transform .12s}
+.btn-sm:hover{transform:translateY(-1px); border-color:var(--accent); color:var(--accent)}
+.stats{display:flex; flex-wrap:wrap; gap:12px; margin-bottom:24px}
+.stat{flex:1 1 150px; background:var(--card); border-radius:var(--r-md); padding:16px 18px; box-shadow:var(--shadow); text-align:center}
+.stat .num{font-family:'Baloo 2',cursive; font-size:2rem; font-weight:700}
+.stat .lbl{color:var(--ink-soft); font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em}
+.stat.nfb .num{color:var(--accent)}
+.stat.fans .num{color:var(--warn)}
+.stat.mut .num{color:var(--good)}
+.tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+.tab{font-family:'Baloo 2',cursive; font-size:1rem; font-weight:600; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); border-radius:var(--r-pill); padding:10px 20px; cursor:pointer; transition:transform .12s}
+.tab:hover{transform:translateY(-1px)}
+.tab.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.panel{display:none}
+.panel.active{display:block}
+.panel-tools{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px}
+.search{flex:1 1 200px; border:2px solid var(--line); background:var(--input); color:var(--ink); border-radius:var(--r-pill); padding:10px 18px; font-family:'Nunito',sans-serif; font-size:.95rem; font-weight:600}
+.search:focus{outline:none; border-color:var(--accent)}
+.azbar{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px}
+.az{min-width:34px; height:32px; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); font-family:'Baloo 2',cursive; font-weight:600; font-size:.85rem; border-radius:10px; cursor:pointer; padding:0 6px; transition:transform .1s}
+.az:hover:not(:disabled){transform:translateY(-1px); border-color:var(--accent); color:var(--accent)}
+.az.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.az:disabled{opacity:.3; cursor:default}
+ul.names{list-style:none; margin:0; padding:0}
+ul.names li{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 18px; margin-bottom:8px; background:var(--chip); border-radius:var(--r-md); font-weight:600}
+ul.names a{color:var(--accent); text-decoration:none; font-weight:700}
+ul.names a:hover{text-decoration:underline}
+.when{color:var(--ink-soft); font-size:.8rem; white-space:nowrap}
+.empty{color:var(--ink-soft); font-weight:600; padding:16px; text-align:center}
+.privacy{background:var(--good-soft); border-radius:var(--r-md); padding:16px 20px; display:flex; gap:14px; align-items:flex-start; margin-bottom:24px}
+.privacy svg{width:24px; height:24px; flex-shrink:0; color:var(--good); margin-top:2px}
+.privacy p{margin:0; font-weight:600}
+footer{text-align:center; color:var(--ink-soft); font-weight:600; font-size:.85rem}
+@media (max-width:560px){
+  header{flex-direction:column-reverse; align-items:center; text-align:center}
+  .wrap{padding:16px 14px 40px}
+  .card{padding:18px}
+  .stats{gap:8px}
+  .stat{flex:1 1 40%; padding:12px}
+  .stat .num{font-size:1.5rem}
+}
 
 </style>
 </head>
 <body>
-
+<div class="wrap">
 <header>
-  <button id="theme-toggle" type="button" aria-label="Toggle light or dark mode" title="Toggle light/dark mode">🌙</button>
-  <h1>Follow <span>Check</span></h1>
-  <p>Find who doesn't follow you back on Instagram — right in your browser.</p>
+  <div>
+    <h1>Follow Check</h1>
+    <p class="tagline">Find out who does not follow you back</p>
+  </div>
+  <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Toggle theme"></button>
 </header>
 
 <section class="card">
-  <h2>1. Get your Instagram data export</h2>
+  <h2>Get your Instagram data</h2>
   <ol class="steps">
-    <li>Open the Instagram app or instagram.com and go to <strong>Settings</strong> → <strong>Your activity</strong> → <strong>Download your information</strong> (on web: Settings → Privacy and security → <strong>Download your information</strong>).</li>
-    <li>Tap <strong>Request a download</strong>, select your account, and choose <strong>Complete copy</strong> (or select only <strong>Followers and following</strong>).</li>
-    <li>Set <strong>Format</strong> to <strong>JSON</strong> (not HTML) and media quality to low for a faster export.</li>
-    <li>Submit the request. Instagram emails you a download link — this can take from a few minutes up to 48 hours.</li>
-    <li>Download the ZIP and extract it. Inside the <code>followers_and_following</code> folder you'll find <code>followers_1.json</code> and <code>following.json</code>.</li>
-    <li>Upload those two files below. Everything is processed on your device — nothing is uploaded anywhere.</li>
+    <li>Open Instagram and go to Settings, then Your activity</li>
+    <li>Choose <strong>Download your information</strong> and request your data</li>
+    <li>Pick <strong>JSON</strong> as the format and wait for the email</li>
+    <li>Unzip it and find <code>followers_1.json</code> and <code>following.json</code> in the followers_and_following folder</li>
   </ol>
 </section>
 
 <section class="card">
-  <h2>2. Upload your files</h2>
-  <div class="dropzones">
-    <div class="dropzone" id="dz-followers">
-      <input type="file" id="file-followers" accept=".json,application/json" multiple aria-label="Upload followers_1.json (multiple files allowed)">
-      <span class="file-icon">👥</span>
-      <div class="dz-title" id="title-followers">Followers</div>
-      <div class="dz-hint" id="hint-followers">followers_1.json (multiple allowed) — people who follow you</div>
-    </div>
-    <div class="dropzone" id="dz-following">
-      <input type="file" id="file-following" accept=".json,application/json" multiple aria-label="Upload following.json (multiple files allowed)">
-      <span class="file-icon">➡️</span>
-      <div class="dz-title" id="title-following">Following</div>
-      <div class="dz-hint" id="hint-following">following.json (multiple allowed) — people you follow</div>
-    </div>
+  <h2>Upload your files</h2>
+  <div class="dropzone" id="dzFollowers">
+    <strong>Your followers</strong>
+    <p style="margin:4px 0 0">Drop <code>followers_1.json</code> here, or tap to browse (multiple files allowed)</p>
+    <p class="dz-count" id="countFollowers" hidden></p>
+    <p class="dz-hint" id="hintFollowers">No file yet</p>
+    <input type="file" id="fileFollowers" accept=".json,application/json" multiple hidden>
   </div>
-  <div id="error-msg" role="alert"></div>
-  <div style="margin-top: 14px; text-align: center;">
-    <button class="btn" id="analyze-btn" disabled>Analyze</button>
-    <button class="btn secondary" id="reset-btn">Reset</button>
+  <div class="dropzone" id="dzFollowing">
+    <strong>Who you follow</strong>
+    <p style="margin:4px 0 0">Drop <code>following.json</code> here, or tap to browse (multiple files allowed)</p>
+    <p class="dz-count" id="countFollowing" hidden></p>
+    <p class="dz-hint" id="hintFollowing">No file yet</p>
+    <input type="file" id="fileFollowing" accept=".json,application/json" multiple hidden>
   </div>
+  <p class="btn-row"><button class="btn" id="analyzeBtn" disabled>Analyze</button></p>
 </section>
 
-<section id="results">
-  <div class="summary">
-    <div class="stat">
-      <div class="num" id="stat-following">–</div>
-      <div class="label">You follow</div>
-    </div>
-    <div class="stat nofollow">
-      <div class="num" id="stat-nofollow">–</div>
-      <div class="label">Don't follow you back</div>
-    </div>
-    <div class="stat fans">
-      <div class="num" id="stat-fans">–</div>
-      <div class="label">Fans (you don't follow back)</div>
-    </div>
-    <div class="stat mutuals">
-      <div class="num" id="stat-mutuals">–</div>
-      <div class="label">Mutuals</div>
-    </div>
+<section id="results" hidden>
+  <div class="stats">
+    <div class="stat total"><div class="num" id="statTotal">0</div><div class="lbl">You follow</div></div>
+    <div class="stat nfb"><div class="num" id="statNfb">0</div><div class="lbl">Don't follow back</div></div>
+    <div class="stat fans"><div class="num" id="statFans">0</div><div class="lbl">Fans</div></div>
+    <div class="stat mut"><div class="num" id="statMut">0</div><div class="lbl">Mutuals</div></div>
   </div>
-
-  <div class="tabs" role="tablist">
-    <button class="tab active" data-panel="nofollow" role="tab">Not following back (<span id="tab-nofollow">0</span>)</button>
-    <button class="tab" data-panel="fans" role="tab">Fans (<span id="tab-fans">0</span>)</button>
-    <button class="tab" data-panel="mutuals" role="tab">Mutuals (<span id="tab-mutuals">0</span>)</button>
+  <div class="tabs">
+    <button class="tab active" data-panel="nfb">Not following back</button>
+    <button class="tab" data-panel="fans">Fans</button>
+    <button class="tab" data-panel="mutuals">Mutuals</button>
   </div>
-
-  <div class="panel active" id="panel-nofollow">
-    <div class="panel-head">
-      <input type="search" placeholder="Search usernames…" data-search="nofollow" aria-label="Search not-following-back list">
-      <button class="btn small secondary" data-sort="nofollow">↕ Sort</button>
-      <button class="btn small secondary" data-copy="nofollow">Copy usernames</button>
-      <button class="btn small secondary" data-csv="nofollow">Export CSV</button>
-    </div>
-    <div class="letterbar" data-letters="nofollow"></div>
-    <ul class="userlist" id="list-nofollow"></ul>
+  <div class="panel active" id="panel-nfb">
+  <div class="panel-tools">
+    <input class="search" id="search-nfb" placeholder="Search usernames...">
+    <button class="btn-sm" data-sort="nfb">Sort: A to Z</button>
+    <button class="btn-sm" data-copy="nfb">Copy usernames</button>
+    <button class="btn-sm" data-csv="nfb">Export CSV</button>
   </div>
-  <div class="panel" id="panel-fans">
-    <div class="panel-head">
-      <input type="search" placeholder="Search usernames…" data-search="fans" aria-label="Search fans list">
-      <button class="btn small secondary" data-sort="fans">↕ Sort</button>
-      <button class="btn small secondary" data-copy="fans">Copy usernames</button>
-      <button class="btn small secondary" data-csv="fans">Export CSV</button>
-    </div>
-    <div class="letterbar" data-letters="fans"></div>
-    <ul class="userlist" id="list-fans"></ul>
-  </div>
-  <div class="panel" id="panel-mutuals">
-    <div class="panel-head">
-      <input type="search" placeholder="Search usernames…" data-search="mutuals" aria-label="Search mutuals list">
-      <button class="btn small secondary" data-sort="mutuals">↕ Sort</button>
-      <button class="btn small secondary" data-copy="mutuals">Copy usernames</button>
-      <button class="btn small secondary" data-csv="mutuals">Export CSV</button>
-    </div>
-    <div class="letterbar" data-letters="mutuals"></div>
-    <ul class="userlist" id="list-mutuals"></ul>
-  </div>
-</section>
-
-<div class="privacy">
-  <span>🔒</span>
-  <p><strong>Privacy:</strong> Follow Check never uploads, sends, or stores your data anywhere. Both files are parsed entirely in your browser, and nothing ever leaves your device. Close the page and it's all gone.</p>
+  <div class="azbar" id="az-nfb"></div>
+  <ul class="names" id="list-nfb"></ul>
 </div>
-
-<footer>Not affiliated with Instagram or Meta.</footer>
-
-
+<div class="panel" id="panel-fans">
+  <div class="panel-tools">
+    <input class="search" id="search-fans" placeholder="Search usernames...">
+    <button class="btn-sm" data-sort="fans">Sort: A to Z</button>
+    <button class="btn-sm" data-copy="fans">Copy usernames</button>
+    <button class="btn-sm" data-csv="fans">Export CSV</button>
+  </div>
+  <div class="azbar" id="az-fans"></div>
+  <ul class="names" id="list-fans"></ul>
+</div>
+<div class="panel" id="panel-mutuals">
+  <div class="panel-tools">
+    <input class="search" id="search-mutuals" placeholder="Search usernames...">
+    <button class="btn-sm" data-sort="mutuals">Sort: A to Z</button>
+    <button class="btn-sm" data-copy="mutuals">Copy usernames</button>
+    <button class="btn-sm" data-csv="mutuals">Export CSV</button>
+  </div>
+  <div class="azbar" id="az-mutuals"></div>
+  <ul class="names" id="list-mutuals"></ul>
+</div>
 <script>
-(function () {
-  "use strict";
+(function(){
+"use strict";
 
-  var state = {
-    followers: {},
-    following: {},
-    loaded: { followers: false, following: false },
-    lists: { nofollow: [], fans: [], mutuals: [] },
-    sort: { nofollow: "username-asc", fans: "username-asc", mutuals: "username-asc" },
-    letter: { nofollow: "", fans: "", mutuals: "" }
-  };
+/* Theme */
+var sunSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+var moonSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+var themeBtn=document.getElementById('themeToggle');
+var metaTheme=document.getElementById('metaTheme');
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  themeBtn.innerHTML=(t==='dark')?sunSvg:moonSvg;
+  metaTheme.setAttribute('content',(t==='dark')?'#241d24':'#fff4ec');
+}
+var saved=null;
+try{saved=localStorage.getItem('fc-theme');}catch(e){}
+var darkMQ=window.matchMedia('(prefers-color-scheme: dark)');
+applyTheme(saved||(darkMQ.matches?'dark':'light'));
+themeBtn.addEventListener('click',function(){
+  var next=(document.documentElement.getAttribute('data-theme')==='dark')?'light':'dark';
+  applyTheme(next);
+  try{localStorage.setItem('fc-theme',next);}catch(e){}
+});
+darkMQ.addEventListener('change',function(e){
+  var stored=null;
+  try{stored=localStorage.getItem('fc-theme');}catch(err){}
+  if(!stored) applyTheme(e.matches?'dark':'light');
+});
 
-  var $ = function (sel) { return document.querySelector(sel); };
-  var $$ = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+/* State */
+var followers=[]; var following=[];
+var lists={nfb:[],fans:[],mutuals:[]};
+var letterFilter={nfb:null,fans:null,mutuals:null};
+var sortModes={nfb:0,fans:0,mutuals:0};
+var SORT_LABELS=['A to Z','Z to A','Oldest first','Newest first'];
 
-  function showError(msg) {
-    var el = $("#error-msg");
-    el.textContent = msg;
-    el.style.display = "block";
-  }
-  function clearError() { $("#error-msg").style.display = "none"; }
+function fmtDate(ts){if(!ts)return'';var d=new Date(ts*1000);return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
 
-  /* ---- Parsing -------------------------------------------------- */
-  // Instagram exports have changed shape over the years. Rather than
-  // assuming one schema, we recursively scan the whole JSON for anything
-  // that looks like a username entry:
-  //   { "string_list_data": [ { "value": "username", "timestamp": 123 }, ... ] }   (current format)
-  //   { "value": "username", "timestamp": 123 }                                    (legacy flat entries)
-  function extractUsers(data) {
-    var users = {};
-
-    // Pass 1: current + legacy object formats.
-    // Handles entries shaped either like
-    //   { "title": "user", "string_list_data": [{ "href": ..., "timestamp": ... }] }   (username in entry.title)
-    // or  { "string_list_data": [{ "value": "user", "href": ..., "timestamp": ... }] } (username in value)
-    function harvest(entry, pathKey) {
-      if (!entry || typeof entry !== "object") return;
-      var fromTitle = (typeof entry.title === "string" && entry.title) ? entry.title : null;
-      if (Array.isArray(entry.string_list_data)) {
-        entry.string_list_data.forEach(function (d) {
-          var name = null;
-          if (d && typeof d.value === "string" && d.value) {
-            name = d.value;
-          } else if (fromTitle) {
-            name = fromTitle;
-          } else if (d && typeof d.href === "string") {
-            // derive username from ".../instagram.com/_u/username" style hrefs
-            var mHref = d.href.match(/instagram\.com\/(?:_u\/)?([^\/\?]+)\/?$/);
-            if (mHref) name = mHref[1];
-          }
-          if (name) {
-            users[name] = (d && typeof d.timestamp === "number") ? d.timestamp : null;
-          }
-        });
-      } else if (typeof entry.value === "string" && entry.value &&
-                 (entry.timestamp !== undefined || entry.href !== undefined || /follow/i.test(pathKey))) {
-        // Legacy format: bare objects with value/href/timestamp
-        users[entry.value] = (typeof entry.timestamp === "number") ? entry.timestamp : null;
-      } else if (fromTitle && Array.isArray(entry.media_list_data) && /follow/i.test(pathKey)) {
-        // Extremely defensive: title-only entries with an (empty) media_list_data array
-        users[fromTitle] = null;
-      }
+/* Parsing: recursively find usernames in any Instagram export shape */
+function collectUsers(node,out,depth){
+  if(depth>12||node==null)return;
+  if(Array.isArray(node)){
+    for(var i=0;i<node.length;i++){
+      var it=node[i];
+      if(typeof it==='string'){out.set(it,null);continue;}
+      collectUsers(it,out,depth+1);
     }
+    return;
+  }
+  if(typeof node!=='object')return;
+  var sld=node.string_list_data;
+  if(Array.isArray(sld)){
+    for(var j=0;j<sld.length;j++){
+      var s=sld[j],name=null,ts=null;
+      if(s&&typeof s==='object'){
+        if(typeof s.value==='string'&&s.value)name=s.value;
+        if(typeof s.timestamp==='number')ts=s.timestamp;
+      }
+      if(!name&&typeof node.title==='string'&&node.title)name=node.title;
+      if(!name&&s&&typeof s.href==='string'){
+        var m=s.href.match(/instagram\.com\/(?:_u\/)?([^\/\?]+)/);
+        if(m)name=m[1];
+      }
+      if(name)out.set(name,(out.get(name)!=null&&out.get(name)!==undefined)?Math.min(out.get(name),ts==null?Infinity:ts):ts);
+    }
+    return;
+  }
+  if(typeof node.value==='string'&&node.value){
+    var ts2=(typeof node.timestamp==='number')?node.timestamp:null;
+    out.set(node.value,(out.get(node.value)!=null)?Math.min(out.get(node.value),ts2==null?Infinity:ts2):ts2);
+  }
+  for(var k in node)collectUsers(node[k],out,depth+1);
+}
+function parseJson(text,fileName){
+  if(/^\s*<(!doctype|html)/i.test(text))throw new Error('This is an HTML file. Please export your data in JSON format.');
+  var data;
+  try{data=JSON.parse(text);}
+  catch(e){throw new Error('Could not read '+fileName+' as JSON.');}
+  var out=new Map();
+  collectUsers(data,out,0);
+  if(out.size===0){
+    var keys=(data&&typeof data==='object'&&!Array.isArray(data))?Object.keys(data).join(', '):'unknown';
+    throw new Error('No usernames found in '+fileName+' (top-level key(s): '+keys+').');
+  }
+  var arr=[];
+  out.forEach(function(ts,name){arr.push({name:name,ts:(ts===Infinity||ts==null)?null:ts});});
+  return arr;
+}
 
-    function walk(node, pathKey, depth) {
-      if (!node || typeof node !== "object" || depth > 12) return;
-      if (Array.isArray(node)) {
-        // Fallback: some exports store usernames as plain strings,
-        // e.g. { "relationships_following": ["user_a", "user_b"] }
-        if (/follow/i.test(pathKey) && node.length && typeof node[0] === "string") {
-          node.forEach(function (s) {
-            if (typeof s === "string" && s) users[s] = null;
+/* Upload handling */
+function setupZone(zoneKey){
+  var zone=document.getElementById(zoneKey==='followers'?'dzFollowers':'dzFollowing');
+  var input=document.getElementById(zoneKey==='followers'?'fileFollowers':'fileFollowing');
+  var hint=document.getElementById(zoneKey==='followers'?'hintFollowers':'hintFollowing');
+  var count=document.getElementById(zoneKey==='followers'?'countFollowers':'countFollowing');
+  function refresh(n,hints){
+    count.hidden=n===0;
+    if(n){count.textContent=n+' accounts loaded';hint.textContent=hints;zone.classList.add('loaded');zone.classList.remove('error');}
+    else{hint.textContent='No file yet';zone.classList.remove('loaded','error');}
+  }
+  function handleFiles(fileList){
+    var files=Array.prototype.slice.call(fileList);
+    if(!files.length)return;
+    var pending=files.length;var total=new Map();var errs=[];
+    files.forEach(function(f){
+      var r=new FileReader();
+      r.onload=function(){
+        try{
+          parseJson(r.result,f.name).forEach(function(e){
+            var prev=total.get(e.name);
+            if(prev===undefined||(e.ts!=null&&(prev==null||e.ts<prev)))total.set(e.name,e.ts);
           });
-          return;
-        }
-        node.forEach(function (item) { walk(item, pathKey, depth + 1); });
-      } else {
-        harvest(node, pathKey);
-        for (var key in node) {
-          if (Object.prototype.hasOwnProperty.call(node, key)) walk(node[key], key, depth + 1);
-        }
-      }
-    }
-
-    walk(data, "", 0);
-
-    // Pass 2 (last resort): accept bare { "value": "..." } objects anywhere
-    // if nothing was found yet — better than failing outright.
-    if (Object.keys(users).length === 0) {
-      (function looseWalk(node, depth) {
-        if (!node || typeof node !== "object" || depth > 12) return;
-        if (Array.isArray(node)) {
-          node.forEach(function (item) { looseWalk(item, depth + 1); });
-        } else {
-          if (typeof node.value === "string" && node.value && node.href === undefined) {
-            users[node.value] = (typeof node.timestamp === "number") ? node.timestamp : null;
+        }catch(err){errs.push(err.message);}
+        if(--pending===0){
+          if(total.size>0){
+            var arr=[];total.forEach(function(ts,name){arr.push({name:name,ts:(ts===Infinity)?null:ts});});
+            if(zoneKey==='followers'){followers=arr;}else{following=arr;}
+            refresh(arr.length,files.map(function(f){return f.name;}).join(', '));
+          }else{
+            refresh(0,'');zone.classList.add('error');hint.textContent=errs[0]||'No usernames found.';
           }
-          for (var key in node) {
-            if (Object.prototype.hasOwnProperty.call(node, key)) looseWalk(node[key], depth + 1);
-          }
-        }
-      })(data, 0);
-    }
-
-    if (Object.keys(users).length === 0) {
-      var keys = "unknown structure";
-      try {
-        if (Array.isArray(data)) keys = "a top-level array of " + data.length + " items";
-        else if (data && typeof data === "object") keys = "top-level key(s): " + Object.keys(data).join(", ");
-      } catch (e) { /* ignore */ }
-      throw new Error("No usernames found in this file (" + keys + "). " +
-        "Make sure it's the JSON export from \"Download Your Information\", not HTML.");
-    }
-    return users;
-  }
-
-  function parseFile(file) {
-    return new Promise(function (resolve, reject) {
-      if (!/\.json$/i.test(file.name)) {
-        return reject(new Error(file.name + " is not a .json file. Please upload the JSON files from your Instagram export."));
-      }
-      var reader = new FileReader();
-      reader.onload = function () {
-        try {
-          resolve(extractUsers(JSON.parse(reader.result)));
-        } catch (err) {
-          reject(err instanceof Error ? err : new Error("Failed to parse " + file.name));
+          updateBtn();
         }
       };
-      reader.onerror = function () { reject(new Error("Could not read " + file.name)); };
-      reader.readAsText(file);
+      r.onerror=function(){errs.push('Could not read '+f.name);if(--pending===0){refresh(0,'');zone.classList.add('error');hint.textContent=errs[0];updateBtn();}};
+      r.readAsText(f);
     });
   }
-
-  /* ---- Analysis -------------------------------------------------- */
-  function analyze() {
-    var followers = state.followers, following = state.following;
-    var nofollow = [], fans = [], mutuals = [];
-    Object.keys(following).forEach(function (u) {
-      if (u in followers) mutuals.push(u);
-      else nofollow.push(u);
+  zone.addEventListener('click',function(){input.click();});
+  input.addEventListener('change',function(){handleFiles(input.files);input.value='';});
+  zone.addEventListener('dragover',function(e){e.preventDefault();zone.classList.add('drag');});
+  zone.addEventListener('dragleave',function(){zone.classList.remove('drag');});
+  zone.addEventListener('drop',function(e){e.preventDefault();zone.classList.remove('drag');handleFiles(e.dataTransfer.files);});
+}
+setupZone('followers');
+setupZone('following');
+var analyzeBtn=document.getElementById('analyzeBtn');
+function updateBtn(){analyzeBtn.disabled=!(followers.length&&following.length);}
+analyzeBtn.addEventListener('click',function(){
+  var fSet=new Map();followers.forEach(function(e){fSet.set(e.name.toLowerCase(),e);});
+  var gSet=new Map();following.forEach(function(e){gSet.set(e.name.toLowerCase(),e);});
+  lists.nfb=[];lists.fans=[];lists.mutuals=[];
+  following.forEach(function(e){if(!fSet.has(e.name.toLowerCase()))lists.nfb.push(e);else lists.mutuals.push(e);});
+  followers.forEach(function(e){if(!gSet.has(e.name.toLowerCase()))lists.fans.push(e);});
+  document.getElementById('statTotal').textContent=following.length;
+  document.getElementById('statNfb').textContent=lists.nfb.length;
+  document.getElementById('statFans').textContent=lists.fans.length;
+  document.getElementById('statMut').textContent=lists.mutuals.length;
+  ['nfb','fans','mutuals'].forEach(function(k){
+    letterFilter[k]=null;sortModes[k]=0;
+    buildAz(k);renderList(k);
+    var btn=document.querySelector('[data-sort="'+k+'"]');
+    if(btn)btn.textContent='Sort: '+SORT_LABELS[0];
+  });
+  var res=document.getElementById('results');
+  res.hidden=false;res.scrollIntoView({behavior:'smooth'});
+});
+/* A-Z filter bar */
+function buildAz(key){
+  var bar=document.getElementById('az-'+key);
+  bar.innerHTML='';
+  var present=new Set();
+  lists[key].forEach(function(e){present.add(letterOf(e.name));});
+  var mk=function(label,val){
+    var b=document.createElement('button');
+    b.className='az';b.type='button';b.textContent=label;
+    var has=(val==='#')?Array.from(present).some(function(c){return !/[a-z]/.test(c);}):present.has(val);
+    b.disabled=!has;
+    if(letterFilter[key]===val)b.classList.add('active');
+    b.addEventListener('click',function(){
+      letterFilter[key]=(letterFilter[key]===val)?null:val;
+      Array.prototype.forEach.call(bar.children,function(c){c.classList.remove('active');});
+      if(letterFilter[key]===val)b.classList.add('active');
+      renderList(key);
     });
-    Object.keys(followers).forEach(function (u) {
-      if (!(u in following)) fans.push(u);
-    });
-    state.lists = {
-      nofollow: nofollow.map(function (u) { return { username: u, ts: following[u] }; }),
-      fans: fans.map(function (u) { return { username: u, ts: followers[u] }; }),
-      mutuals: mutuals.map(function (u) { return { username: u, ts: following[u] }; })
-    };
-    $("#stat-following").textContent = Object.keys(following).length;
-    $("#stat-nofollow").textContent = nofollow.length;
-    $("#stat-fans").textContent = fans.length;
-    $("#stat-mutuals").textContent = mutuals.length;
-    $("#tab-nofollow").textContent = nofollow.length;
-    $("#tab-fans").textContent = fans.length;
-    $("#tab-mutuals").textContent = mutuals.length;
-    Object.keys(state.lists).forEach(function (key) { renderList(key); buildLetterBar(key); });
-    $("#results").style.display = "block";
-    $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  /* ---- Rendering -------------------------------------------------- */
-  function comparator(mode) {
-    switch (mode) {
-      case "username-desc": return function (a, b) { return b.username.localeCompare(a.username); };
-      case "date-desc":     return function (a, b) { return (b.ts || 0) - (a.ts || 0); };
-      case "date-asc":      return function (a, b) { return (a.ts || 0) - (b.ts || 0); };
-      default:              return function (a, b) { return a.username.localeCompare(b.username); };
-    }
-  }
-
-  function renderList(key) {
-    var list = state.lists[key];
-    var letter = state.letter[key] || "";
-    var searchEl = $('[data-search="' + key + '"]');
-    var q = searchEl ? searchEl.value.trim().toLowerCase() : "";
-    var filtered = list;
-    if (letter) {
-      filtered = filtered.filter(function (e) {
-        var ch = e.username.charAt(0).toUpperCase();
-        return (/^[A-Z]$/.test(ch) ? ch : "#") === letter;
-      });
-    }
-    if (q) {
-      filtered = filtered.filter(function (e) { return e.username.toLowerCase().indexOf(q) !== -1; });
-    }
-    var sorted = filtered.slice().sort(comparator(state.sort[key]));
-
-    var ul = $("#list-" + key);
-    ul.innerHTML = "";
-    if (sorted.length === 0) {
-      var li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = list.length === 0 ? "Nothing here — this list is empty."
-        : letter && !q ? "No usernames starting with “" + letter + "”" + (q ? " matching “" + q + "”" : "") + "."
-        : "No usernames match “" + q + "”.";
-      ul.appendChild(li);
-      return;
-    }
-    var frag = document.createDocumentFragment();
-    sorted.forEach(function (e) {
-      var li = document.createElement("li");
-      var a = document.createElement("a");
-      a.href = "https://www.instagram.com/" + encodeURIComponent(e.username) + "/";
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.textContent = e.username;
-      li.appendChild(a);
-      if (e.ts) {
-        var d = document.createElement("span");
-        d.className = "date";
-        d.textContent = new Date(e.ts * 1000).toLocaleDateString();
-        li.appendChild(d);
-      }
-      frag.appendChild(li);
-    });
-    ul.appendChild(frag);
-  }
-
-  var SORT_ORDER = ["username-asc", "username-desc", "date-asc", "date-desc"];
-  var SORT_LABELS = {
-    "username-asc": "Search… (sorted A → Z)",
-    "username-desc": "Search… (sorted Z → A)",
-    "date-asc": "Search… (oldest follow first)",
-    "date-desc": "Search… (newest follow first)"
+    bar.appendChild(b);
   };
-
-  function cycleSort(key) {
-    var current = state.sort[key] || SORT_ORDER[0];
-    state.sort[key] = SORT_ORDER[(SORT_ORDER.indexOf(current) + 1) % SORT_ORDER.length];
-    var searchEl = $('[data-search="' + key + '"]');
-    searchEl.placeholder = SORT_LABELS[state.sort[key]];
-    renderList(key);
-  }
-
-  /* ---- A–Z letter filter ------------------------------------------- */
-  function buildLetterBar(key) {
-    var bar = $('[data-letters="' + key + '"]');
-    if (!bar) return;
-    var present = {};
-    state.lists[key].forEach(function (e) {
-      var ch = e.username.charAt(0).toUpperCase();
-      present[/[A-Z]/.test(ch) ? ch : "#"] = true;
-    });
-    bar.innerHTML = "";
-
-    function chip(label, value) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.textContent = label;
-      b.dataset.letter = value;
-      if (!value && !presentAny(bar)) b.disabled = true;
-      if (value && !present[value]) b.disabled = true;
-      if ((state.letter[key] || "") === value) b.classList.add("active");
-      b.addEventListener("click", function () {
-        state.letter[key] = (state.letter[key] === value) ? "" : value;
-        $$("[data-letters='" + key + "'] button").forEach(function (x) {
-          x.classList.toggle("active", (state.letter[key] || "") === x.dataset.letter);
-        });
-        renderList(key);
-      });
-      return b;
+  mk('All',null);
+  for(var i=0;i<26;i++)mk(String.fromCharCode(65+i),String.fromCharCode(97+i));
+  mk('#','#');
+}
+function letterOf(name){
+  var c=name.charAt(0).toLowerCase();
+  return /[a-z]/.test(c)?c:'#';
+}
+/* Render list */
+function currentItems(key){
+  var q=(document.getElementById('search-'+key).value||'').trim().toLowerCase();
+  var lf=letterFilter[key];
+  var arr=lists[key].filter(function(e){
+    if(lf&&letterOf(e.name)!==lf)return false;
+    if(q&&e.name.toLowerCase().indexOf(q)===-1)return false;
+    return true;
+  });
+  var m=sortModes[key];
+  arr.sort(function(a,b){
+    if(m===2||m===3){
+      var ta=a.ts||0,tb=b.ts||0;
+      return m===2?ta-tb:tb-ta;
     }
-
-    bar.appendChild(chip("All", ""));
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("").forEach(function (ch) {
-      bar.appendChild(chip(ch, ch));
-    });
-
-    function presentAny(barEl) {
-      return barEl.querySelector("button[data-letter]:not([data-letter=''])") !== null;
-    }
+    var c=nameOf(a).localeCompare(nameOf(b));
+    return m===1?-c:c;
+  });
+  return arr;
+}
+function nameOf(e){return e.name;}
+function renderList(key){
+  var ul=document.getElementById('list-'+key);
+  var items=currentItems(key);
+  ul.innerHTML='';
+  if(!items.length){
+    var li=document.createElement('li');
+    li.className='empty';
+    li.textContent=(lists[key].length===0)?'Nothing here yet.':(letterFilter[key]?'No usernames starting with "'+letterFilter[key].toUpperCase()+'" match.':'No usernames match your search.');
+    ul.appendChild(li);
+    return;
   }
-
-  /* ---- Copy & CSV -------------------------------------------------- */
-  function copyList(key) {
-    var text = state.lists[key].map(function (e) { return e.username; }).join("\n");
-    var btn = $('[data-copy="' + key + '"]');
-    function done(ok) {
-      btn.textContent = ok ? "Copied!" : "Copy failed";
-      setTimeout(function () { btn.textContent = "Copy usernames"; }, 1500);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { fallbackCopy(text, done); });
-    } else {
-      fallbackCopy(text, done);
-    }
-  }
-
-  function fallbackCopy(text, done) {
-    var ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    var ok = false;
-    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
-    document.body.removeChild(ta);
-    done(ok);
-  }
-
-  function exportCsv(key) {
-    var label = { nofollow: "not_following_back", fans: "fans", mutuals: "mutuals" }[key];
-    var rows = [["username", "followed_at_iso"]];
-    state.lists[key].forEach(function (e) {
-      rows.push([e.username, e.ts ? new Date(e.ts * 1000).toISOString() : ""]);
-    });
-    var csv = rows.map(function (r) {
-      return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(",");
-    }).join("\r\n");
-    var blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = "instagram-" + label + ".csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-
-  /* ---- File handling ------------------------------------------------ */
-  function setLoaded(kind, count, fileName) {
-    var dz = $("#dz-" + kind);
-    dz.classList.remove("error");
-    dz.classList.add("loaded");
-    $("#title-" + kind).textContent = fileName;
-    $("#hint-" + kind).textContent = count + " user" + (count === 1 ? "" : "s") + " loaded";
-    state.loaded[kind] = true;
-    $("#analyze-btn").disabled = !(state.loaded.followers && state.loaded.following);
-  }
-
-  function handleError(kind, err) {
-    var dz = $("#dz-" + kind);
-    dz.classList.remove("loaded");
-    dz.classList.add("error");
-    state.loaded[kind] = false;
-    $("#analyze-btn").disabled = true;
-    showError(err && err.message ? err.message : "Something went wrong reading that file.");
-  }
-
-  // Parse one or more files (e.g. followers_1.json, followers_2.json, …)
-  // and merge their usernames into a single list for this zone.
-  function handleFiles(kind, files) {
-    clearError();
-    var fileArr = Array.prototype.slice.call(files);
-    if (fileArr.length === 0) return;
-    var merged = kind === "followers" ? state.followers : state.following;
-    var names = [];
-
-    var chain = Promise.resolve();
-    fileArr.forEach(function (file) {
-      chain = chain.then(function () {
-        return parseFile(file).then(function (users) {
-          for (var u in users) {
-            // Keep the earliest known timestamp if the same user appears twice
-            if (!(u in merged) || (users[u] !== null && (merged[u] === null || users[u] < merged[u]))) {
-              merged[u] = users[u];
-            }
-          }
-          names.push(file.name);
-        });
-      });
-    });
-
-    chain.then(function () {
-      if (kind === "followers") state.followers = merged;
-      else state.following = merged;
-      setLoaded(kind, Object.keys(merged).length, names.join(", "));
-    }).catch(function (err) { handleError(kind, err); });
-  }
-
-  ["followers", "following"].forEach(function (kind) {
-    var input = $("#file-" + kind);
-    var dz = $("#dz-" + kind);
-
-    input.addEventListener("change", function () {
-      if (input.files && input.files.length) handleFiles(kind, input.files);
-    });
-
-    ["dragenter", "dragover"].forEach(function (evt) {
-      dz.addEventListener(evt, function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dz.classList.add("dragover");
-      });
-    });
-    dz.addEventListener("dragleave", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dz.classList.remove("dragover");
-    });
-    dz.addEventListener("drop", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dz.classList.remove("dragover");
-      if (e.dataTransfer.files && e.dataTransfer.files.length) {
-        handleFiles(kind, e.dataTransfer.files);
-      }
+  items.forEach(function(e){
+    var li=document.createElement('li');
+    var a=document.createElement('a');
+    a.href='https://www.instagram.com/'+encodeURIComponent(e.name)+'/';
+    a.target='_blank';a.rel='noopener';
+    a.textContent=e.name;
+    li.appendChild(a);
+    if(e.ts){var sp=document.createElement('span');sp.className='when';sp.textContent=fmtDate(e.ts);li.appendChild(sp);}
+    ul.appendChild(li);
+  });
+}
+/* Tabs */
+var tabBtns=document.querySelectorAll('.tab');
+Array.prototype.forEach.call(tabBtns,function(t){
+  t.addEventListener('click',function(){
+    Array.prototype.forEach.call(tabBtns,function(x){x.classList.remove('active');});
+    t.classList.add('active');
+    ['nfb','fans','mutuals'].forEach(function(k){
+      document.getElementById('panel-'+k).classList.toggle('active',k===t.getAttribute('data-panel'));
     });
   });
-
-  /* ---- Theme toggle -------------------------------------------------- */
-  function applyTheme(theme) {
-    if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
-    else document.documentElement.removeAttribute("data-theme");
-    var btn = $("#theme-toggle");
-    if (btn) btn.textContent = theme === "dark" ? "☀️" : "🌙";
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "theme-color";
-      document.head.appendChild(meta);
-    }
-    meta.content = theme === "dark" ? "#101014" : "#ffffff";
-  }
-
-  var currentTheme = function () {
-    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-  };
-
-  applyTheme(currentTheme());
-
-  $("#theme-toggle").addEventListener("click", function () {
-    var next = currentTheme() === "dark" ? "light" : "dark";
-    applyTheme(next);
-    try { localStorage.setItem("fc-theme", next); } catch (e) { /* ignore */ }
+});
+/* Search */
+['nfb','fans','mutuals'].forEach(function(k){
+  document.getElementById('search-'+k).addEventListener('input',function(){renderList(k);});
+});
+/* Sort */
+Array.prototype.forEach.call(document.querySelectorAll('[data-sort]'),function(b){
+  b.addEventListener('click',function(){
+    var k=b.getAttribute('data-sort');
+    sortModes[k]=(sortModes[k]+1)%4;
+    b.textContent='Sort: '+SORT_LABELS[sortModes[k]];
+    renderList(k);
   });
-
-  // If the user hasn't picked a theme manually, follow OS-level changes live
-  if (window.matchMedia) {
-    var mq = window.matchMedia("(prefers-color-scheme: dark)");
-    var onChange = function (e) {
-      var saved = null;
-      try { saved = localStorage.getItem("fc-theme"); } catch (err) { /* ignore */ }
-      if (!saved) applyTheme(e.matches ? "dark" : "light");
-    };
-    if (mq.addEventListener) mq.addEventListener("change", onChange);
-    else if (mq.addListener) mq.addListener(onChange);
-  }
-
-  /* ---- UI wiring ----------------------------------------------------- */
-  $("#analyze-btn").addEventListener("click", function () {
-    clearError();
-    try { analyze(); } catch (err) { showError(err.message); }
+});
+/* Copy */
+function copyText(text,btn){
+  var done=function(){var o=btn.textContent;btn.textContent='Copied!';setTimeout(function(){btn.textContent=o;},1200);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done,function(){fallbackCopy(text);done();});
+  }else{fallbackCopy(text);done();}
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'),function(b){
+  b.addEventListener('click',function(){
+    copyText(lists[b.getAttribute('data-copy')].map(function(e){return e.name;}).join('\n'),b);
   });
-
-  $("#reset-btn").addEventListener("click", function () {
-    state.followers = {};
-    state.following = {};
-    state.lists = { nofollow: [], fans: [], mutuals: [] };
-    state.loaded = { followers: false, following: false };
-    state.sort = { nofollow: "username-asc", fans: "username-asc", mutuals: "username-asc" };
-    state.letter = { nofollow: "", fans: "", mutuals: "" };
-    ["followers", "following"].forEach(function (kind) {
-      $("#file-" + kind).value = "";
-      var dz = $("#dz-" + kind);
-      dz.classList.remove("loaded", "error");
-      $("#title-" + kind).textContent = kind === "followers" ? "Followers" : "Following";
-      $("#hint-" + kind).textContent = kind === "followers"
-        ? "followers_1.json (multiple allowed) — people who follow you"
-        : "following.json (multiple allowed) — people you follow";
-    });
-    $("#analyze-btn").disabled = true;
-    $("#results").style.display = "none";
-    clearError();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+});
+/* CSV */
+function csvEsc(s){return '"'+String(s).replace(/"/g,'""')+'"';}
+Array.prototype.forEach.call(document.querySelectorAll('[data-csv]'),function(b){
+  b.addEventListener('click',function(){
+    var k=b.getAttribute('data-csv');
+    var rows=[['username','follow_date']];
+    currentItems(k).forEach(function(e){rows.push([e.name,e.ts?new Date(e.ts*1000).toISOString().slice(0,10):'']);});
+    var csv='\ufeff'+rows.map(function(r){return r.map(csvEsc).join(',');}).join('\r\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='follow-check-'+k+'.csv';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},100);
   });
-
-  $$(".tab").forEach(function (tab) {
-    tab.addEventListener("click", function () {
-      $$(".tab").forEach(function (t) { t.classList.remove("active"); });
-      tab.classList.add("active");
-      $$(".panel").forEach(function (p) { p.classList.remove("active"); });
-      $("#panel-" + tab.dataset.panel).classList.add("active");
-    });
-  });
-
-  $$("[data-search]").forEach(function (input) {
-    input.addEventListener("input", function () { renderList(input.dataset.search); });
-  });
-  $$("[data-sort]").forEach(function (btn) {
-    btn.addEventListener("click", function () { cycleSort(btn.dataset.sort); });
-  });
-  $$("[data-copy]").forEach(function (btn) {
-    btn.addEventListener("click", function () { copyList(btn.dataset.copy); });
-  });
-  $$("[data-csv]").forEach(function (btn) {
-    btn.addEventListener("click", function () { exportCsv(btn.dataset.csv); });
-  });
+});
 })();
-
 </script>
+</section>
+
+<section class="privacy">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <p><strong>Private by design.</strong> This tool never uploads or stores your data anywhere. Everything is processed right here in your browser, so nothing ever leaves your device.</p>
+</section>
+
+<footer>Follow Check runs entirely in your browser. Your data stays yours.</footer>
+</div>
+
 </body>
 </html>
-
