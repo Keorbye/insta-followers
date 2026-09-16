@@ -19,12 +19,11 @@
   --r-lg:26px; --r-md:18px; --r-pill:999px;
 }
 html[data-theme="dark"]{
-  --bg:#241d24; --card:#322a33; --ink:#f7eef2; --ink-soft:#c0aec0;
-  --accent:#ff7fa8; --accent-ink:#2b1220; --accent-soft:#4a2c3a;
-  --good:#5fd6a0; --good-soft:#254436; --warn:#f5c15c; --warn-soft:#453a24;
-  --line:#453a45; --chip:#3c3240; --input:#2d2530;
-  --shadow:0 6px 20px rgba(0,0,0,.35);
-  --shadow-lift:0 10px 26px rgba(0,0,0,.45);
+  --bg:#14201a; --card:#1e2f26; --ink:#eafaf0; --ink-soft:#a3c5b2;
+  --accent:#5fd6a0; --accent-ink:#0d2418; --accent-soft:#25473a;
+  --good:#7ee0b0; --good-soft:#20402f; --warn:#f5c15c; --warn-soft:#453d24;
+  --line:#31473c; --chip:#24382e; --input:#1b2b23;
+  --shadow:0 8px 22px rgba(0,0,0,.4), 4px 6px 0 rgba(0,0,0,.25);
 }
 *{box-sizing:border-box}
 body{
@@ -241,7 +240,7 @@ var metaTheme=document.getElementById('metaTheme');
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   themeBtn.innerHTML=(t==='dark')?sunSvg:moonSvg;
-  metaTheme.setAttribute('content',(t==='dark')?'#241d24':'#fff4ec');
+  metaTheme.setAttribute('content',(t==='dark')?'#14201a':'#fff4ec');
 }
 var saved=null;
 try{saved=localStorage.getItem('fc-theme');}catch(e){}
