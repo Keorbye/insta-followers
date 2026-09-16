@@ -7,7 +7,7 @@
 <title>Follow Check</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#fff4ec; --card:#ffffff; --ink:#3d2c29; --ink-soft:#7a6a66;
@@ -27,73 +27,118 @@ html[data-theme="dark"]{
   --shadow-lift:0 10px 26px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box}
-body{margin:0; background:var(--bg); color:var(--ink); font-family:'Nunito',sans-serif; font-size:16px; line-height:1.55; transition:background .2s}
+body{
+  margin:0; color:var(--ink);
+  font-family:'Nunito',sans-serif; font-size:16px; line-height:1.55;
+  background-color:var(--bg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23p)'/%3E%3C/svg%3E");
+  background-attachment:fixed;
+}
+@keyframes pop{0%{transform:scale(.85) rotate(-1deg);opacity:0}60%{transform:scale(1.04) rotate(.5deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes wiggle{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-6px) rotate(-2deg)}}
+@keyframes squish{0%{transform:scale(1)}40%{transform:scale(.92)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes spinheart{0%{transform:rotate(0)}25%{transform:rotate(-12deg) scale(1.15)}50%{transform:rotate(10deg)}75%{transform:rotate(-6deg) scale(1.1)}100%{transform:rotate(0)}}
 h1,h2,h3{font-family:'Baloo 2',cursive; line-height:1.2; margin:0}
-.wrap{max-width:760px; margin:0 auto; padding:24px 20px 60px}
-header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px}
-header h1{font-size:1.9rem; color:var(--accent)}
+.hand{font-family:'Caveat',cursive; font-weight:600}
+.wrap{max-width:760px; margin:0 auto; padding:24px 20px 60px; position:relative}
+header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:28px; position:relative}
+header h1{font-size:2rem; color:var(--accent); display:inline-block}
+header h1:hover{animation:squish .45s ease}
 .tagline{margin:4px 0 0; color:var(--ink-soft); font-weight:600; font-size:.95rem}
-.icon-btn{border:2px solid var(--line); background:var(--card); color:var(--ink); width:46px; height:46px; border-radius:var(--r-pill); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s}
-.icon-btn:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift)}
+.doodle{position:absolute; pointer-events:none; opacity:.9}
+.doodle-heart{top:-6px; left:200px; width:26px; color:var(--accent); animation:floaty 3.2s ease-in-out infinite}
+.doodle-star{top:34px; right:70px; width:20px; color:var(--warn); animation:floaty 4s ease-in-out .6s infinite}
+.doodle-sq{top:70px; left:40px; width:16px; color:var(--good); animation:floaty 3.6s ease-in-out .3s infinite}
+.icon-btn{border:2px solid var(--line); background:var(--card); color:var(--ink); width:46px; height:46px; border-radius:26px 22px 28px 20px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:2px 3px 0 var(--line); transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.icon-btn:hover{transform:rotate(-8deg) scale(1.1)}
+.icon-btn:active{transform:scale(.9)}
 .icon-btn svg{width:22px; height:22px}
-.card{background:var(--card); border-radius:var(--r-lg); padding:24px; box-shadow:var(--shadow); margin-bottom:24px}
-.card h2{font-size:1.3rem; margin-bottom:12px}
+.card{
+  background:var(--card); border-radius:22px 26px 20px 28px; padding:24px;
+  border:2px solid var(--line);
+  box-shadow:0 8px 22px rgba(90,60,50,.10), 4px 6px 0 rgba(90,60,50,.06);
+  margin-bottom:26px; position:relative;
+}
+.card:nth-of-type(odd){transform:rotate(-.4deg)}
+.card:nth-of-type(even){transform:rotate(.35deg)}
+.card h2{font-size:1.35rem; margin-bottom:12px}
+.tape{
+  position:absolute; top:-12px; left:50%; transform:translateX(-50%) rotate(-2deg);
+  width:92px; height:24px; background:var(--accent-soft); opacity:.9;
+  border-left:2px dashed rgba(90,60,50,.12); border-right:2px dashed rgba(90,60,50,.12);
+  border-radius:3px;
+}
 .steps{margin:12px 0 0; padding-left:0; list-style:none; counter-reset:step}
 .steps li{counter-increment:step; position:relative; padding:10px 14px 10px 52px; margin-bottom:8px; background:var(--chip); border-radius:var(--r-md); font-weight:600}
 .steps li::before{content:counter(step); position:absolute; left:12px; top:50%; transform:translateY(-50%); width:28px; height:28px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:'Baloo 2',cursive; font-weight:700; display:flex; align-items:center; justify-content:center}
 code{background:var(--accent-soft); color:var(--accent); padding:2px 8px; border-radius:8px; font-size:.85em; font-weight:700}
 .dropzone{border:2.5px dashed var(--line); border-radius:var(--r-md); padding:20px; text-align:center; cursor:pointer; background:var(--chip); margin-bottom:12px; transition:border-color .15s, background .15s}
-.dropzone:hover{border-color:var(--accent)}
+.dropzone:hover{border-color:var(--accent); animation:wiggle .35s ease}
 .dropzone.drag{border-color:var(--accent); background:var(--accent-soft)}
 .dropzone.loaded{border-style:solid; border-color:var(--good); background:var(--good-soft)}
 .dropzone.error{border-style:solid; border-color:#d64545}
 .dropzone strong{font-family:'Baloo 2',cursive; font-size:1.05rem}
 .dz-hint{color:var(--ink-soft); font-size:.85rem; margin:6px 0 0; word-break:break-word}
 .dz-count{color:var(--good); font-weight:700; margin:6px 0 0}
-.btn{font-family:'Baloo 2',cursive; font-size:1.05rem; font-weight:600; border:none; border-radius:var(--r-pill); padding:14px 32px; cursor:pointer; background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s}
-.btn:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift)}
+.btn{font-family:'Baloo 2',cursive; font-size:1.05rem; font-weight:600; border:none; border-radius:24px 20px 26px 18px; padding:14px 32px; cursor:pointer; background:var(--accent); color:var(--accent-ink); box-shadow:3px 4px 0 rgba(90,60,50,.18); transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.btn:hover{transform:rotate(-1.5deg) scale(1.05)}
+.btn:active{transform:scale(.94)}
 .btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
 .btn-row{text-align:center; margin:8px 0 0}
-.btn-sm{font-family:'Nunito',sans-serif; font-weight:700; font-size:.85rem; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:var(--r-pill); padding:8px 16px; cursor:pointer; transition:transform .12s}
-.btn-sm:hover{transform:translateY(-1px); border-color:var(--accent); color:var(--accent)}
-.stats{display:flex; flex-wrap:wrap; gap:12px; margin-bottom:24px}
-.stat{flex:1 1 150px; background:var(--card); border-radius:var(--r-md); padding:16px 18px; box-shadow:var(--shadow); text-align:center}
+.btn-sm{font-family:'Nunito',sans-serif; font-weight:700; font-size:.85rem; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:14px 18px 12px 16px; padding:8px 16px; cursor:pointer; box-shadow:2px 2px 0 rgba(90,60,50,.08); transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.btn-sm:hover{transform:rotate(-1deg) scale(1.06); border-color:var(--accent); color:var(--accent)}
+.btn-sm:active{transform:scale(.94)}
+.stats{display:flex; flex-wrap:wrap; gap:14px; margin-bottom:26px}
+.stat{flex:1 1 150px; background:var(--card); border-radius:20px 16px 22px 18px; padding:16px 18px; border:2px solid var(--line); box-shadow:0 8px 22px rgba(90,60,50,.10), 4px 6px 0 rgba(90,60,50,.06); text-align:center; position:relative; transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.stat:nth-child(1){transform:rotate(-1deg)}
+.stat:nth-child(2){transform:rotate(.8deg)}
+.stat:nth-child(3){transform:rotate(-.6deg)}
+.stat:nth-child(4){transform:rotate(1deg)}
+.stat:hover{transform:rotate(0) scale(1.05)}
 .stat .num{font-family:'Baloo 2',cursive; font-size:2rem; font-weight:700}
 .stat .lbl{color:var(--ink-soft); font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em}
+.stat .px{position:absolute; top:8px; right:10px; image-rendering:pixelated; width:14px}
 .stat.nfb .num{color:var(--accent)}
 .stat.fans .num{color:var(--warn)}
 .stat.mut .num{color:var(--good)}
-.tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
-.tab{font-family:'Baloo 2',cursive; font-size:1rem; font-weight:600; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); border-radius:var(--r-pill); padding:10px 20px; cursor:pointer; transition:transform .12s}
-.tab:hover{transform:translateY(-1px)}
-.tab.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.tabs{display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap}
+.tab{font-family:'Baloo 2',cursive; font-size:1rem; font-weight:600; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); border-radius:18px 14px 20px 12px; padding:10px 20px; cursor:pointer; box-shadow:2px 3px 0 rgba(90,60,50,.08); transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.tab:hover{transform:rotate(-2deg) scale(1.06)}
+.tab:active{transform:scale(.93)}
+.tab.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); transform:rotate(-1deg) translateY(-3px); box-shadow:3px 5px 0 rgba(90,60,50,.15)}
 .panel{display:none}
-.panel.active{display:block}
+.panel.active{display:block; animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
 .panel-tools{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px}
-.search{flex:1 1 200px; border:2px solid var(--line); background:var(--input); color:var(--ink); border-radius:var(--r-pill); padding:10px 18px; font-family:'Nunito',sans-serif; font-size:.95rem; font-weight:600}
-.search:focus{outline:none; border-color:var(--accent)}
+.search{flex:1 1 200px; border:2px solid var(--line); background:var(--input); color:var(--ink); border-radius:16px 20px 14px 18px; padding:10px 18px; font-family:'Nunito',sans-serif; font-size:.95rem; font-weight:600; box-shadow:inset 2px 2px 0 rgba(90,60,50,.05); transition:border-color .15s, transform .18s cubic-bezier(.34,1.56,.64,1)}
+.search:focus{outline:none; border-color:var(--accent); transform:scale(1.01)}
 .azbar{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px}
-.az{min-width:34px; height:32px; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); font-family:'Baloo 2',cursive; font-weight:600; font-size:.85rem; border-radius:10px; cursor:pointer; padding:0 6px; transition:transform .1s}
-.az:hover:not(:disabled){transform:translateY(-1px); border-color:var(--accent); color:var(--accent)}
-.az.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.az{min-width:34px; height:32px; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); font-family:'Baloo 2',cursive; font-weight:600; font-size:.85rem; border-radius:10px 12px 8px 12px; cursor:pointer; padding:0 6px; transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.az:hover:not(:disabled){transform:rotate(-6deg) scale(1.15); border-color:var(--accent); color:var(--accent)}
+.az.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); transform:rotate(-4deg)}
 .az:disabled{opacity:.3; cursor:default}
 ul.names{list-style:none; margin:0; padding:0}
-ul.names li{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 18px; margin-bottom:8px; background:var(--chip); border-radius:var(--r-md); font-weight:600}
+ul.names li{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 18px; margin-bottom:8px; background:var(--chip); border:2px solid var(--line); border-radius:14px 18px 12px 16px; font-weight:600; transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+ul.names li:hover{transform:rotate(-.7deg) scale(1.015)}
 ul.names a{color:var(--accent); text-decoration:none; font-weight:700}
-ul.names a:hover{text-decoration:underline}
+ul.names a:hover{text-decoration:underline wavy}
 .when{color:var(--ink-soft); font-size:.8rem; white-space:nowrap}
-.empty{color:var(--ink-soft); font-weight:600; padding:16px; text-align:center}
-.privacy{background:var(--good-soft); border-radius:var(--r-md); padding:16px 20px; display:flex; gap:14px; align-items:flex-start; margin-bottom:24px}
-.privacy svg{width:24px; height:24px; flex-shrink:0; color:var(--good); margin-top:2px}
+.empty{color:var(--ink-soft); font-weight:600; padding:16px; text-align:center; justify-content:center}
+.privacy{background:var(--good-soft); border-radius:20px 24px 18px 26px; border:2px solid var(--good); padding:16px 20px; display:flex; gap:14px; align-items:flex-start; margin-bottom:26px; transform:rotate(.4deg)}
+.privacy svg{width:24px; height:24px; flex-shrink:0; color:var(--good); margin-top:2px; transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.privacy:hover svg{animation:spinheart .7s ease}
 .privacy p{margin:0; font-weight:600}
-footer{text-align:center; color:var(--ink-soft); font-weight:600; font-size:.85rem}
+.privacy .hand{font-size:1.15rem; color:var(--good)}
+footer{text-align:center; color:var(--ink-soft); font-weight:600; font-size:.85rem; margin-top:8px}
+footer .hand{font-size:1.2rem; color:var(--accent)}
 @media (max-width:560px){
   header{flex-direction:column-reverse; align-items:center; text-align:center}
   .wrap{padding:16px 14px 40px}
   .card{padding:18px}
-  .stats{gap:8px}
+  .stats{gap:10px}
   .stat{flex:1 1 40%; padding:12px}
   .stat .num{font-size:1.5rem}
+  .doodle{display:none}
 }
 
 </style>
@@ -103,12 +148,16 @@ footer{text-align:center; color:var(--ink-soft); font-weight:600; font-size:.85r
 <header>
   <div>
     <h1>Follow Check</h1>
-    <p class="tagline">Find out who does not follow you back</p>
+    <svg class="doodle doodle-heart" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-10-9.3C.4 8.6 2.3 5 5.8 5c2 0 3.4 1.1 4.2 2.4h4c.8-1.3 2.2-2.4 4.2-2.4 3.5 0 5.4 3.6 3.8 6.7C19.5 16.3 12 21 12 21z" transform="scale(.9) translate(1.3,1)"/></svg>
+    <svg class="doodle doodle-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.3 5.8.5-4.4 3.8 1.3 5.7L12 15.3 7.1 18.3l1.3-5.7L4 8.8l5.8-.5z"/></svg>
+    <svg class="doodle doodle-sq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg>
+    <p class="tagline hand">find out who does not follow you back</p>
   </div>
   <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Toggle theme"></button>
 </header>
 
 <section class="card">
+  <div class="tape"></div>
   <h2>Get your Instagram data</h2>
   <ol class="steps">
     <li>Open Instagram and go to Settings, then Your activity</li>
@@ -119,6 +168,7 @@ footer{text-align:center; color:var(--ink-soft); font-weight:600; font-size:.85r
 </section>
 
 <section class="card">
+  <div class="tape"></div>
   <h2>Upload your files</h2>
   <div class="dropzone" id="dzFollowers">
     <strong>Your followers</strong>
@@ -139,10 +189,10 @@ footer{text-align:center; color:var(--ink-soft); font-weight:600; font-size:.85r
 
 <section id="results" hidden>
   <div class="stats">
-    <div class="stat total"><div class="num" id="statTotal">0</div><div class="lbl">You follow</div></div>
-    <div class="stat nfb"><div class="num" id="statNfb">0</div><div class="lbl">Don't follow back</div></div>
-    <div class="stat fans"><div class="num" id="statFans">0</div><div class="lbl">Fans</div></div>
-    <div class="stat mut"><div class="num" id="statMut">0</div><div class="lbl">Mutuals</div></div>
+    <div class="stat total"><svg class="px" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#f3c2d3" d="M1 0h2v1h1V0h2v1h1v3h-1v1h-1v1h-1v1h-1V6H2V5H1V4H0V1h1z"/></svg><div class="num" id="statTotal">0</div><div class="lbl">You follow</div></div>
+    <div class="stat nfb"><svg class="px" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#f0a0bb" d="M1 0h2v1h1V0h2v1h1v3h-1v1h-1v1h-1v1h-1V6H2V5H1V4H0V1h1z"/></svg><div class="num" id="statNfb">0</div><div class="lbl">Don't follow back</div></div>
+    <div class="stat fans"><svg class="px" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#e9cf8a" d="M1 0h2v1h1V0h2v1h1v3h-1v1h-1v1h-1v1h-1V6H2V5H1V4H0V1h1z"/></svg><div class="num" id="statFans">0</div><div class="lbl">Fans</div></div>
+    <div class="stat mut"><svg class="px" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="#a9dfc4" d="M1 0h2v1h1V0h2v1h1v3h-1v1h-1v1h-1v1h-1V6H2V5H1V4H0V1h1z"/></svg><div class="num" id="statMut">0</div><div class="lbl">Mutuals</div></div>
   </div>
   <div class="tabs">
     <button class="tab active" data-panel="nfb">Not following back</button>
@@ -472,10 +522,10 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-csv]'),function(b)
 
 <section class="privacy">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-  <p><strong>Private by design.</strong> This tool never uploads or stores your data anywhere. Everything is processed right here in your browser, so nothing ever leaves your device.</p>
+  <p><strong><span class="hand">private by design.</span></strong> This tool never uploads or stores your data anywhere. Everything is processed right here in your browser, so nothing ever leaves your device.</p>
 </section>
 
-<footer>Follow Check runs entirely in your browser. Your data stays yours.</footer>
+<footer><span class="hand">made with love, runs entirely in your browser</span></footer>
 </div>
 
 </body>
