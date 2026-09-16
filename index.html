@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Follow Check — Instagram Unfollower Checker</title>
+<script>
+  // Apply saved theme (or system preference) before first paint to avoid flashing
+  (function () {
+    try {
+      var saved = localStorage.getItem("fc-theme");
+      var dark = saved ? saved === "dark"
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (dark) document.documentElement.setAttribute("data-theme", "dark");
+    } catch (e) { /* localStorage unavailable — default to light */ }
+  })();
+</script>
 <style>
   :root {
     --bg: #ffffff;
@@ -17,21 +28,21 @@
     --red: #d63a2f;
     --red-bg: #fdecea;
     --blue: #2f6fd0;
+    color-scheme: light;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #101014;
-      --surface: #1c1c22;
-      --surface-hover: #26262e;
-      --text: #f2f2f5;
-      --text-muted: #9a9aa5;
-      --accent: #ff5c9d;
-      --border: #2c2c35;
-      --green: #4cd482;
-      --red: #ff6b61;
-      --red-bg: #351715;
-      --blue: #6ea8ff;
-    }
+  :root[data-theme="dark"] {
+    --bg: #101014;
+    --surface: #1c1c22;
+    --surface-hover: #26262e;
+    --text: #f2f2f5;
+    --text-muted: #9a9aa5;
+    --accent: #ff5c9d;
+    --border: #2c2c35;
+    --green: #4cd482;
+    --red: #ff6b61;
+    --red-bg: #351715;
+    --blue: #6ea8ff;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -44,10 +55,32 @@
     max-width: 860px;
     margin: 0 auto;
   }
-  header { text-align: center; margin: 24px 0 8px; }
+  header { text-align: center; margin: 24px 0 8px; position: relative; }
   header h1 { font-size: 1.8rem; letter-spacing: -0.02em; }
   header h1 span { color: var(--accent); }
   header p { color: var(--text-muted); margin-top: 4px; font-size: 0.95rem; }
+  #theme-toggle {
+    position: absolute;
+    top: -6px;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s, border-color .15s;
+    line-height: 1;
+  }
+  #theme-toggle:hover { border-color: var(--accent); transform: rotate(15deg) scale(1.08); }
+  @media (max-width: 480px) {
+    #theme-toggle { position: static; margin: 0 auto 10px; display: flex; }
+    header { display: flex; flex-direction: column; align-items: center; }
+  }
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -199,6 +232,7 @@
 <body>
 
 <header>
+  <button id="theme-toggle" type="button" aria-label="Toggle light or dark mode" title="Toggle light/dark mode">🌙</button>
   <h1>Follow <span>Check</span></h1>
   <p>Find who doesn't follow you back on Instagram — right in your browser.</p>
 </header>
@@ -709,6 +743,45 @@
       }
     });
   });
+
+  /* ---- Theme toggle -------------------------------------------------- */
+  function applyTheme(theme) {
+    if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    else document.documentElement.removeAttribute("data-theme");
+    var btn = $("#theme-toggle");
+    if (btn) btn.textContent = theme === "dark" ? "☀️" : "🌙";
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    meta.content = theme === "dark" ? "#101014" : "#ffffff";
+  }
+
+  var currentTheme = function () {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  };
+
+  applyTheme(currentTheme());
+
+  $("#theme-toggle").addEventListener("click", function () {
+    var next = currentTheme() === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("fc-theme", next); } catch (e) { /* ignore */ }
+  });
+
+  // If the user hasn't picked a theme manually, follow OS-level changes live
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var onChange = function (e) {
+      var saved = null;
+      try { saved = localStorage.getItem("fc-theme"); } catch (err) { /* ignore */ }
+      if (!saved) applyTheme(e.matches ? "dark" : "light");
+    };
+    if (mq.addEventListener) mq.addEventListener("change", onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
 
   /* ---- UI wiring ----------------------------------------------------- */
   $("#analyze-btn").addEventListener("click", function () {
