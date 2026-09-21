@@ -266,13 +266,21 @@ var SORT_LABELS=['A to Z','Z to A','Oldest first','Newest first'];
 
 function fmtDate(ts){if(!ts)return'';var d=new Date(ts*1000);return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
 
-/* Parsing: recursively find usernames in any Instagram export shape */
+/* Parsing: recursively find usernames in any Instagram export shape.
+   `out` maps lowercase username -> {name: display casing, ts: earliest timestamp}
+   so the same account is never double-counted across case variations. */
+function setUser(out,name,ts){
+  var key=name.toLowerCase();
+  var prev=out.get(key);
+  if(prev===undefined){out.set(key,{name:name,ts:(ts==null)?null:ts});return;}
+  if(ts!=null&&(prev.ts==null||ts<prev.ts))prev.ts=ts;
+}
 function collectUsers(node,out,depth){
   if(depth>12||node==null)return;
   if(Array.isArray(node)){
     for(var i=0;i<node.length;i++){
       var it=node[i];
-      if(typeof it==='string'){out.set(it,null);continue;}
+      if(typeof it==='string'){setUser(out,it,null);continue;}
       collectUsers(it,out,depth+1);
     }
     return;
@@ -291,13 +299,13 @@ function collectUsers(node,out,depth){
         var m=s.href.match(/instagram\.com\/(?:_u\/)?([^\/\?]+)/);
         if(m)name=m[1];
       }
-      if(name)out.set(name,(out.get(name)!=null&&out.get(name)!==undefined)?Math.min(out.get(name),ts==null?Infinity:ts):ts);
+      if(name)setUser(out,name,ts);
     }
     return;
   }
   if(typeof node.value==='string'&&node.value){
     var ts2=(typeof node.timestamp==='number')?node.timestamp:null;
-    out.set(node.value,(out.get(node.value)!=null)?Math.min(out.get(node.value),ts2==null?Infinity:ts2):ts2);
+    setUser(out,node.value,ts2);
   }
   for(var k in node)collectUsers(node[k],out,depth+1);
 }
@@ -313,7 +321,7 @@ function parseJson(text,fileName){
     throw new Error('No usernames found in '+fileName+' (top-level key(s): '+keys+').');
   }
   var arr=[];
-  out.forEach(function(ts,name){arr.push({name:name,ts:(ts===Infinity||ts==null)?null:ts});});
+  out.forEach(function(v){arr.push({name:v.name,ts:v.ts});});
   return arr;
 }
 
@@ -337,13 +345,15 @@ function setupZone(zoneKey){
       r.onload=function(){
         try{
           parseJson(r.result,f.name).forEach(function(e){
-            var prev=total.get(e.name);
-            if(prev===undefined||(e.ts!=null&&(prev==null||e.ts<prev)))total.set(e.name,e.ts);
+            var key=e.name.toLowerCase();
+            var prev=total.get(key);
+            if(prev===undefined)total.set(key,e);
+            else if(e.ts!=null&&(prev.ts==null||e.ts<prev.ts))prev.ts=e.ts;
           });
         }catch(err){errs.push(err.message);}
         if(--pending===0){
           if(total.size>0){
-            var arr=[];total.forEach(function(ts,name){arr.push({name:name,ts:(ts===Infinity)?null:ts});});
+            var arr=[];total.forEach(function(e){arr.push(e);});
             if(zoneKey==='followers'){followers=arr;}else{following=arr;}
             refresh(arr.length,files.map(function(f){return f.name;}).join(', '));
           }else{
