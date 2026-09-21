@@ -310,6 +310,7 @@ function collectUsers(node,out,depth){
   for(var k in node)collectUsers(node[k],out,depth+1);
 }
 function parseJson(text,fileName){
+  text=String(text).replace(/^\uFEFF+/,''); /* strip UTF-8 BOM (Notepad re-saves) */
   if(/^\s*<(!doctype|html)/i.test(text))throw new Error('This is an HTML file. Please export your data in JSON format.');
   var data;
   try{data=JSON.parse(text);}
