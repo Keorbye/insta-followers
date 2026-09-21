@@ -183,6 +183,15 @@ footer .hand{font-size:1.2rem; color:var(--accent)}
     <p class="dz-hint" id="hintFollowing">No file yet</p>
     <input type="file" id="fileFollowing" accept=".json,application/json" multiple hidden>
   </div>
+  <div style="margin-top:18px;background:var(--chip);border:2px dashed var(--line);border-radius:var(--r-md);padding:14px 16px">
+    <strong class="hand" style="font-size:1.1rem">tips for accurate results</strong>
+    <ul style="margin:8px 0 0;padding-left:20px;color:var(--ink-soft);font-size:.92rem">
+      <li><strong>Upload ALL follower chunks</strong> — big accounts get split into <code>followers_1.json</code>, <code>followers_2.json</code>, … Select them all at once (hold Ctrl/Cmd while picking).</li>
+      <li>If you haven't extracted the download yet, <strong>unzip it first</strong> — this tool reads the <code>.json</code> files inside, not the ZIP.</li>
+      <li>The export is a snapshot from when you requested it — follows/unfollows made after that won't show up.</li>
+      <li>Files edited in Notepad or copied elsewhere are fine — the app handles BOMs, line endings, and odd characters on Windows, Mac, and mobile alike.</li>
+    </ul>
+  </div>
   <p class="btn-row"><button class="btn" id="analyzeBtn" disabled>Analyze</button></p>
 </section>
 
