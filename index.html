@@ -267,10 +267,19 @@ var SORT_LABELS=['A to Z','Z to A','Oldest first','Newest first'];
 function fmtDate(ts){if(!ts)return'';var d=new Date(ts*1000);return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
 
 /* Parsing: recursively find usernames in any Instagram export shape.
-   `out` maps lowercase username -> {name: display casing, ts: earliest timestamp}
-   so the same account is never double-counted across case variations. */
+   `out` maps normalized username -> {name: display casing, ts: earliest timestamp}
+   so the same account is never double-counted across case variations.
+   keyOf() normalizes invisible differences (whitespace, zero-width chars,
+   NBSP, Unicode NFC) so the same account always matches across files. */
+function keyOf(name){
+  return name.normalize('NFC')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,'')   /* zero-width chars */
+    .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g,' ') /* exotic spaces -> normal space */
+    .trim()
+    .toLowerCase();
+}
 function setUser(out,name,ts){
-  var key=name.toLowerCase();
+  var key=keyOf(name);
   var prev=out.get(key);
   if(prev===undefined){out.set(key,{name:name,ts:(ts==null)?null:ts});return;}
   if(ts!=null&&(prev.ts==null||ts<prev.ts))prev.ts=ts;
@@ -346,7 +355,7 @@ function setupZone(zoneKey){
       r.onload=function(){
         try{
           parseJson(r.result,f.name).forEach(function(e){
-            var key=e.name.toLowerCase();
+            var key=keyOf(e.name);
             var prev=total.get(key);
             if(prev===undefined)total.set(key,e);
             else if(e.ts!=null&&(prev.ts==null||e.ts<prev.ts))prev.ts=e.ts;
@@ -378,11 +387,11 @@ setupZone('following');
 var analyzeBtn=document.getElementById('analyzeBtn');
 function updateBtn(){analyzeBtn.disabled=!(followers.length&&following.length);}
 analyzeBtn.addEventListener('click',function(){
-  var fSet=new Map();followers.forEach(function(e){fSet.set(e.name.toLowerCase(),e);});
-  var gSet=new Map();following.forEach(function(e){gSet.set(e.name.toLowerCase(),e);});
+  var fSet=new Map();followers.forEach(function(e){fSet.set(keyOf(e.name),e);});
+  var gSet=new Map();following.forEach(function(e){gSet.set(keyOf(e.name),e);});
   lists.nfb=[];lists.fans=[];lists.mutuals=[];
-  following.forEach(function(e){if(!fSet.has(e.name.toLowerCase()))lists.nfb.push(e);else lists.mutuals.push(e);});
-  followers.forEach(function(e){if(!gSet.has(e.name.toLowerCase()))lists.fans.push(e);});
+  following.forEach(function(e){if(!fSet.has(keyOf(e.name)))lists.nfb.push(e);else lists.mutuals.push(e);});
+  followers.forEach(function(e){if(!gSet.has(keyOf(e.name)))lists.fans.push(e);});
   document.getElementById('statTotal').textContent=following.length;
   document.getElementById('statNfb').textContent=lists.nfb.length;
   document.getElementById('statFans').textContent=lists.fans.length;
