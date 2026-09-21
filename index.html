@@ -312,6 +312,21 @@ function collectUsers(node,out,depth){
     }
     return;
   }
+  /* Legacy shape: relationship entries with title/href but no string_list_data,
+     e.g. {"title":"bob","href":"https://www.instagram.com/bob"} — these were
+     previously skipped entirely, losing accounts. Prefer the href (reliable),
+     fall back to title only when the entry also carries a timestamp (so
+     section headers without any user data are not mistaken for usernames). */
+  if(typeof node.href==='string'||typeof node.timestamp==='number'){
+    var ln=null,lts=(typeof node.timestamp==='number')?node.timestamp:null;
+    if(typeof node.href==='string'){
+      var lm=node.href.match(/instagram\.com\/(?:_u\/)?([^\/\?]+)/);
+      if(lm)ln=lm[1];
+    }
+    if(!ln&&typeof node.title==='string'&&node.title)ln=node.title;
+    if(ln)setUser(out,ln,lts);
+    return;
+  }
   if(typeof node.value==='string'&&node.value){
     var ts2=(typeof node.timestamp==='number')?node.timestamp:null;
     setUser(out,node.value,ts2);
@@ -320,6 +335,7 @@ function collectUsers(node,out,depth){
 }
 function parseJson(text,fileName){
   text=String(text).replace(/^\uFEFF+/,''); /* strip UTF-8 BOM (Notepad re-saves) */
+  if(/^PK\x03\x04/.test(text)||/^PK/.test(text))throw new Error(fileName+' looks like a ZIP archive. Extract it first and upload the .json files inside (e.g. followers_1.json and following.json).');
   if(/^\s*<(!doctype|html)/i.test(text))throw new Error('This is an HTML file. Please export your data in JSON format.');
   var data;
   try{data=JSON.parse(text);}
@@ -373,7 +389,7 @@ function setupZone(zoneKey){
         }
       };
       r.onerror=function(){errs.push('Could not read '+f.name);if(--pending===0){refresh(0,'');zone.classList.add('error');hint.textContent=errs[0];updateBtn();}};
-      r.readAsText(f);
+      r.readAsText(f,'utf-8');
     });
   }
   zone.addEventListener('click',function(){input.click();});
